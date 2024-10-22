@@ -78,13 +78,6 @@ select * from (
 select top 3 * from #bottomstates order by #bottomstates.bottomstate asc) b;
 
 
--- states starting with letter a
-
-select distinct state from project..data1 where lower(state) like 'a%' or lower(state) like 'b%'
-
-select distinct state from project..data1 where lower(state) like 'a%' and lower(state) like '%m'
-
-
 -- joining both table
 
 --total males and females
@@ -97,31 +90,14 @@ group by d.state;
 -- total literacy rate
 
 
-select c.state,sum(literate_people) total_literate_pop,sum(illiterate_people) total_lliterate_pop from 
+select c.state,
+sum(literate_people) total_literate_pop,
+sum(illiterate_people) total_lliterate_pop
+from 
 (select d.district,d.state,round(d.literacy_ratio*d.population,0) literate_people,
 round((1-d.literacy_ratio)* d.population,0) illiterate_people from
 (select a.district,a.state,a.literacy/100 literacy_ratio,b.population from project..data1 a 
 inner join project..data2 b on a.district=b.district) d) c
 group by c.state
 
--- population in previous census
 
-
-select sum(m.previous_census_population) previous_census_population,sum(m.current_census_population) current_census_population from(
-select e.state,sum(e.previous_census_population) previous_census_population,sum(e.current_census_population) current_census_population from
-(select d.district,d.state,round(d.population/(1+d.growth),0) previous_census_population,d.population current_census_population from
-(select a.district,a.state,a.growth growth,b.population from project..data1 a inner join project..data2 b on a.district=b.district) d) e
-group by e.state)m
-
-
-
-
---window 
-
-output top 3 districts from each state with highest literacy rate
-
-
-select a.* from
-(select district,state,literacy,rank() over(partition by state order by literacy desc) rnk from project..data1) a
-
-where a.rnk in (1,2,3) order by state
